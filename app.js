@@ -41,6 +41,10 @@ let jwtauth = function (req, res, next) {
   }
 };
 
+//get homepage
+app.get("/", (req, res) => {
+  res.render("Home Page");
+});
 // Register user route
 app.post("/api/register", async (req, res) => {
   try {
@@ -411,7 +415,6 @@ app.get("/api/all_posts", jwtauth, async (req, res) => {
     countPost: post1.length,
   });
 });
-
 
 const port = process.env.PORT || 5000;
 app.listen(5000, () => {
