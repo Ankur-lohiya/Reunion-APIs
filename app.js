@@ -43,7 +43,9 @@ let jwtauth = function (req, res, next) {
 
 //get homepage
 app.get("/", (req, res) => {
-  res.render("Home Page");
+  res.send({
+    message: "Homepage success",
+  });
 });
 // Register user route
 app.post("/api/register", async (req, res) => {
