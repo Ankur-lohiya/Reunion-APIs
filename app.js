@@ -27,9 +27,7 @@ db.once("open", () => console.log("Connected to Database"));
 let jwtauth = function (req, res, next) {
   try {
     const token = req.headers.authorization.split(" ")[1];
-    // console.log(token);
     const tokenCheck = jwt.verify(token, process.env.SECRET_KEY);
-    // console.log(tokenCheck);
     req.body.userId = tokenCheck._id;
     next();
   } catch (err) {
@@ -43,14 +41,13 @@ let jwtauth = function (req, res, next) {
 
 //get homepage
 app.get("/", (req, res) => {
-  res.send({
+  res.status(200).send({
     message: "Homepage success",
   });
 });
 // Register user route
 app.post("/api/register", async (req, res) => {
   try {
-    console.log(req.body);
     const UserExists = await User.findOne({ email: req.body.email });
     if (UserExists) {
       return res.status(200).send({
@@ -83,7 +80,7 @@ app.post("/api/authenticate", async (req, res) => {
     //check user exists
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(200).send({
+      return res.status(201).send({
         message: "User does not exists",
         success: false,
       });
@@ -94,7 +91,7 @@ app.post("/api/authenticate", async (req, res) => {
       user.password
     );
     if (!validPassword) {
-      return res.status(200).send({
+      return res.status(201).send({
         message: "Invalid password",
         success: false,
       });
@@ -105,7 +102,7 @@ app.post("/api/authenticate", async (req, res) => {
     });
     authToken = "Bearer " + token;
     res.setHeader("Authorization", authToken);
-    res.send({
+    res.status(200).send({
       message: "User logged in successfully",
       success: true,
     });
@@ -121,14 +118,11 @@ app.post("/api/authenticate", async (req, res) => {
 //follow route
 app.post("/api/follow/:id", jwtauth, async (req, res) => {
   try {
-    // console.log(req.params.id);
-    // console.log(req.body.userId);
     const user = await User.findById(req.body.userId);
     const user1 = await User.findById(req.params.id);
     userExists = user.following.filter((follow) => {
       return follow._id == req.params.id;
     });
-    console.log("this is line 124", userExists);
     if (userExists.length !== 0)
       return res.status(200).send({
         message: "User already followed",
@@ -164,9 +158,8 @@ app.post("/api/unfollow/:id", jwtauth, async (req, res) => {
     userExists = user.following.filter((follow) => {
       return follow._id == req.params.id;
     });
-    console.log("line 156", userExists);
     if (userExists.length === 0)
-      return res.status(200).send({
+      return res.status(201).send({
         message: "User does not follow",
         success: false,
         data: user,
@@ -178,11 +171,9 @@ app.post("/api/unfollow/:id", jwtauth, async (req, res) => {
     user1.followers = user1.followers.filter((follower) => {
       return follower._id != req.body.userId;
     });
-    console.log("line 167", user.following);
-    console.log("line 168", user1.followers);
     await user1.save();
     await user.save();
-    res.send({
+    res.status(200).send({
       message: "Unfollowing completed successfully",
       success: true,
       data: user,
@@ -201,7 +192,7 @@ app.post("/api/unfollow/:id", jwtauth, async (req, res) => {
 app.get("/api/user", jwtauth, async (req, res) => {
   try {
     const user = await User.findById(req.body.userId);
-    res.send({
+    res.status(200).send({
       message: "User info fetched successfully",
       success: true,
       username: user.email,
@@ -229,7 +220,7 @@ app.post("/api/posts", jwtauth, async (req, res) => {
     const user = await User.findById(req.body.userId);
     user.posts.push(post._id);
     await user.save();
-    res.send({
+    res.status(200).send({
       message: "Post added successfully",
       success: true,
       post: post,
@@ -392,7 +383,6 @@ app.get("/api/all_posts", jwtauth, async (req, res) => {
   const posts = await Posts.find({ createdBy: req.body.userId }).sort({
     createdAt: -1,
   });
-  console.log(posts.length);
   post1 = [];
   posts.map((post) => {
     comments = [];
@@ -422,3 +412,5 @@ const port = process.env.PORT || 5000;
 app.listen(5000, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+module.exports = app;
